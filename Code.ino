@@ -1,10 +1,16 @@
+/*
+        More Details in : https://github.com/emirhanbilge/ArduinoLCDandClock  
+        Thank You
+        Note:My teacher, I tried to explain as much as possible and our time was limited, so I put the circuit diagram and details here.
+*/
+
 #include <LiquidCrystal.h>
 LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
 
 int TIME_SCREEN_CLOCK = 2000;
 int TIME_SCREEN_INFO = 1000;
-String TIME_STRING = "2021.05.15 - 15:27:00";
-String language = "ENG";
+String TIME_STRING = "2021.05.31 - 23:59:55";
+String language = "TUR";
 
 int month, day, year, hour, minutes, second;
 
@@ -63,7 +69,7 @@ void dateParser(String currentDate)
     day = dayy.toInt();
     hour = hourr.toInt();
     minutes = minutess.toInt();
-    second = seconds.toInt();
+    second = seconds.toInt() - 1;
 }
 String makeDoubleString(int param) //I wrote this function to add a leading 0 for values less than 10
 {
@@ -154,8 +160,16 @@ void setup()
 {
     lcd.begin(16, 2);        // lcd starting
     dateParser(TIME_STRING); //The function I calculate the analysis of the entered date in the first set up
-    DisplayClockandDate();   //To start showing the entered time and date directly at the first moment.
-    pinMode(6, INPUT);       // for button
+                             //DisplayClockandDate();   //To start showing the entered time and date directly at the first moment.
+    if (language == "ENG")
+    {
+        language = "TUR";
+    }
+    else
+    {
+        language = "ENG";
+    }
+    pinMode(6, INPUT); // for button
 }
 int clockInfo = 0;
 
@@ -181,7 +195,14 @@ void DisplayClockandDate() // The part with the necessary adjustments and pressi
     lcd.setCursor(0, 0);
     if (language == "ENG")
     {
-        lcd.print(makeDoubleString(hour % 12) + ":" + makeDoubleString(minutes) + ":" + makeDoubleString(second) + dateType());
+        if (hour % 12 == 0)
+        {
+            lcd.print(makeDoubleString(12) + ":" + makeDoubleString(minutes) + ":" + makeDoubleString(second) + dateType());
+        }
+        else
+        {
+            lcd.print(makeDoubleString(hour % 12) + ":" + makeDoubleString(minutes) + ":" + makeDoubleString(second) + dateType());
+        }
     }
     else
     {
@@ -219,9 +240,10 @@ void loop()
         }
     }
     lastButtonValue = currentButtonValue;                     // When the button is pressed, I keep the old value and when the button is pressed continuously, I add a value to make it change 1 time.
-    if (currentMilisend - lastMilliSecond > TIME_SCREEN_INFO) //I'll update the seconds of my watch with the smallest value equal to about 1 second over the last time I held.
+    if (currentMilisend - lastMilliSecond >= TIME_SCREEN_INFO) //I'll update the seconds of my watch with the smallest value equal to about 1 second over the last time I held.
     {
-        ++second;           // I increase the second because 1 second has passed
+        ++second; // I increase the second because 1 second has passed
+        updateClockandCalender();
         if (switchFunction) // I will switch between the switchFunction variable and the time-information screen at 2 second intervals.
         {
             DisplayClockandDate();
@@ -234,14 +256,14 @@ void loop()
         }
         lastMilliSecond = currentMilisend; // Now I will update the time I kept the old and check it to be 1 second again.
     }
-    if (currentMilisend - timeScreenMiliSecond > TIME_SCREEN_CLOCK)
+    if (currentMilisend - timeScreenMiliSecond >= TIME_SCREEN_CLOCK)
     {
         lcd.setCursor(9, 0);
         lcd.print("   ");                       // To delete AM-PM texts that will be caused by language change on the screen
         switchFunction = !switchFunction;       // I print the clock and screen information by taking the opposite of the value of this variable in periods of 2 seconds.
         timeScreenMiliSecond = currentMilisend; // I update the old value again to see if 2 seconds have passed.
     }
-    updateClockandCalender(); // To update times, for example to switch to a new clock, to switch to a new day, to a year
+    // To update times, for example to switch to a new clock, to switch to a new day, to a year
 }
 
 /*
